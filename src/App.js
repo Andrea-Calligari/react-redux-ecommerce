@@ -11,13 +11,12 @@ function App() {
   return (
 
     <div className="App">
-      <header >
+      <header>
         <NavBar />
       </header>
-      <main >
+      <main>
         <AppRouter />
       </main>
-      
     </div>
 
   );

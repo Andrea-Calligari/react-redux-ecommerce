@@ -9,8 +9,6 @@ const initialState = {
         { id: 5, name: 'Nike Free RN 5.0', model: 'Gym and Running', img: '/img/nike-basket.jpg', description: 'Lightweight and flexible, ideal for both running and gym workouts.', price: 109.99, stock: 180 },
         { id: 6, name: 'Nike Free RN 8.0', model: 'Gym and Running', img: '/img/nike_dx.jpg', description: 'Lightweight and flexible, ideal for both running and gym workouts.', price: 9.99, stock: 100 }
     ],
-    cart: [],
-    totalPrice: 0,
     filters: {},
 }
 
@@ -18,16 +16,8 @@ const productSlice = createSlice({
     name: 'products',
     initialState,
     reducers: {
-        addProduct: (state, action) => {
-            const product = action.payload;
-            const existingProduct = state.products.cart.find((el) => el.id === product.id);
-
-            if (existingProduct) {
-
-            }
-        },
-        removeProduct: (state, action) => {
-            state.products.cart = state.products.cart.filter((el) => el.id !== action.payload);
+        setFilter: (state, action) => {
+            state.filters = action.payload;
 
         }
 
@@ -36,5 +26,5 @@ const productSlice = createSlice({
 
 
 });
-export const { addProduct, removeProduct } = productSlice.actions;
+export const { setFilter } = productSlice.actions;
 export default productSlice.reducer;

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 
 const Home = () => {
   return (
-    <Container sx={{ backgroundColor: '#1b2223', color: 'whitesmoke', display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center', paddingTop: '5rem' }}>
+    <Container sx={{  color: 'whitesmoke', display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'center', paddingTop: '5rem' }}>
       <Box mb={4}>
         <Typography variant="h2" fontWeight="bold" gutterBottom>
           Welcome to Our E-Commerce Store!
