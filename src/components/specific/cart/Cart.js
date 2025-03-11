@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Drawer, Box, Typography, Button, List, ListItem, } from "@mui/material";
+import { Drawer, Box, Typography, Button, List, ListItem } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import { clearCart, removeFromCart } from "../../../features/products/components/cart/cartSlice";
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -11,7 +11,7 @@ const Cart = () => {
   const dispatch = useDispatch();
 
   const handleRemoveItem = (id) => {
-    dispatch(removeFromCart(id)); // Rimuovi il prodotto dal carrello
+    dispatch(removeFromCart(id));
   };
 
   const toggleDrawer = (open) => {
@@ -24,21 +24,20 @@ const Cart = () => {
 
   const handleCheckOut = async () => {
     try {
-      console.log("Sending the following items to backend:", JSON.stringify(cart.items, null, 2));
+      console.log("🔹 Items in cart:", JSON.stringify(cart.items, null, 2));
 
-      // Assicurati di inviare un formato semplice, senza `price_data`
       const itemsToSend = cart.items.map(item => ({
         id: item.id,
         name: item.name,
-        image: item.img,
-        price: parseFloat(item.price), // Assicurati che sia un numero valido
-        quantity: item.quantity
+        img: item.img ? `${window.location.origin}${item.img}` : null, // URL assoluto
+        price: !isNaN(parseFloat(item.price)) ? parseFloat(item.price) : 0, // Prevenzione errori
+        quantity: item.quantity || 1
       }));
 
-      console.log("Items sent to backend:", JSON.stringify(itemsToSend, null, 2));
+      console.log("📦 Sending to backend:", JSON.stringify(itemsToSend, null, 2));
 
       const response = await axios.post('http://localhost:4242/create-checkout-session', {
-        items: itemsToSend, // Ora inviamo il formato corretto
+        items: itemsToSend,
       });
 
       if (!response.data || !response.data.url) {
@@ -47,11 +46,10 @@ const Cart = () => {
 
       window.location.href = response.data.url;
     } catch (error) {
-      console.error("Error during checkout", error);
+      console.error("❌ Error during checkout", error);
       alert("Errore durante il checkout: " + error.message);
     }
   };
-
 
   return (
     <>
@@ -77,38 +75,27 @@ const Cart = () => {
       >
         <ShoppingCartIcon />
       </Button>
-      <Drawer anchor="right" open={open} onClose={() => toggleDrawer(false)} sx={{
-        '&[aria-hidden="true"]': {
-          pointerEvents: 'none',  // Disabilita l'interazione con gli elementi all'interno del drawer quando è nascosto
-        }
-      }} >
-        <Box sx={{ minWidth: '500px', padding: 5, display: 'flex', alignItems: 'start', justifyContent: 'start', flexDirection: 'column', height: '100vh', backgroundColor: '#020203f3', color: 'whitesmoke' }}>
-          <Typography variant="h4" sx={{ marginBottom: 2, }}>Shopping Cart</Typography>
+      <Drawer anchor="right" open={open} onClose={() => toggleDrawer(false)}>
+        <Box sx={{ minWidth: '500px', padding: 5, display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#020203f3', color: 'whitesmoke' }}>
+          <Typography variant="h4" sx={{ marginBottom: 2 }}>Shopping Cart</Typography>
           {cart.totalQuantity === 0 ? (
             <Typography fontSize='30px'>Empty Cart</Typography>
           ) : (
             <List>
               {cart.items.map((item) => (
                 <ListItem key={item.id} sx={{ width: '100%' }}>
-                  <Box sx={{ display: 'flex', width: '100%', justifySelf: 'start' }}>
-                    <div className=" cart-item  ">
-                      <Typography variant="body1" sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name} </Typography>
-                      <Typography> x {item.quantity}</Typography>
-                      <Typography >${item.price * item.quantity}</Typography>
-                      <Button
-                        onClick={() => handleRemoveItem(item.id)}
-                        color="error"
-                        variant="outlined"
-                      >
-                        X
-                      </Button>
-                    </div>
+                  <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <img src={item.img ? `${window.location.origin}${item.img}` : "/img/default.jpg"} alt={item.name} width="50" height="50" />
+                    <Typography variant="body1">{item.name}</Typography>
+                    <Typography>x {item.quantity}</Typography>
+                    <Typography>${(item.price * item.quantity).toFixed(2)}</Typography>
+                    <Button onClick={() => handleRemoveItem(item.id)} color="error" variant="outlined">X</Button>
                   </Box>
                 </ListItem>
               ))}
             </List>
           )}
-          <Box sx={{ marginTop: 2, display: 'flex', flexDirection: 'column', justifyContent: 'start', alignItems: 'center', gap: 3 }}>
+          <Box sx={{ marginTop: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
             <Typography variant="h6">Total: ${cart.totalPrice.toFixed(2)}</Typography>
             <div className="flex gap-2">
               <Button onClick={handleCheckOut} variant="contained" color="success">Checkout</Button>
@@ -116,7 +103,7 @@ const Cart = () => {
             </div>
           </Box>
         </Box>
-      </Drawer >
+      </Drawer>
     </>
   );
 };
