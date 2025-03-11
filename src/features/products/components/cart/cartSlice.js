@@ -19,7 +19,7 @@ const cartSlice = createSlice({
             //recupero il prodotto dall'action.payload
             const product = action.payload;
             // vedo se esiste il prodotto 
-            const existingProduct = state.items.filter(el => el.id === product.id);
+            const existingProduct = state.items.find(el => el.id === product.id);
             // se esiste aggiungo la quantita
             if (existingProduct) {
                 existingProduct.quantity += 1;
@@ -27,6 +27,8 @@ const cartSlice = createSlice({
             else {
                 state.items.push({ ...product, quantity: 1 });
             }
+
+           
             // aggiorno il prezzo totale e la quantita dei prodotti presente nel carrello
             state.totalQuantity = state.items.reduce((total, item) => total + item.quantity, 0);
             state.totalPrice = state.items.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -37,6 +39,7 @@ const cartSlice = createSlice({
             const productId = action.payload;
             // recupero il prodotto
             state.items = state.items.filter((item) => item.id !== productId);
+           
 
             // aggiorno il prezzo totale e la quantita dei prodotti presente nel carrello
             state.totalQuantity = state.items.reduce((total, item) => total + item.quantity, 0);
@@ -52,9 +55,11 @@ const cartSlice = createSlice({
             if (product) {
                 product.quantity = quantity;
             }
+           
+
         },
         clearCart: (state) => {
-            // resetto all'initialState
+            // resetto il carrello all'initialState
             state.items = [];
             state.totalQuantity = 0;
             state.totalPrice = 0;

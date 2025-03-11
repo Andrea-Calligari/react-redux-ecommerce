@@ -1,5 +1,5 @@
 import React from "react";
-import { AppBar, Toolbar, Typography, Button, Box } from "@mui/material";
+import { AppBar, Toolbar, Button, Box } from "@mui/material";
 import { Link } from "react-router-dom";
 import SnowshoeingIcon from '@mui/icons-material/Snowshoeing';
 
@@ -8,11 +8,11 @@ const NavBar = () => {
         <AppBar
             position="static"
             sx={{
-                maxWidth: '100%', // Impedisce l'overflow della AppBar
+                maxWidth: '100%', 
                 borderRadius: '0px 0px 14px 14px',
                 backgroundColor: "black",
                 boxShadow: "0px 4px 15px white",
-                overflowX: 'hidden', // Aggiungi questa proprietà per prevenire l'overflow orizzontale
+                overflowX: 'hidden',
             }}
         >
             <Toolbar>

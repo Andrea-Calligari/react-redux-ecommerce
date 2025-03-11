@@ -1,35 +1,74 @@
 import React, { useState } from "react";
-import { Drawer, Box, Typography, Button, List, ListItem, ListItemText, Divider } from "@mui/material";
+import { Drawer, Box, Typography, Button, List, ListItem, } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
+import { clearCart, removeFromCart } from "../../../features/products/components/cart/cartSlice";
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Cart = () => {
   const [open, setOpen] = useState(false);
-  const cartItems = useSelector((state) => state.cart.items);
-  const totalPrice = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const cart = useSelector((state) => state.cart);
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
+  const handleRemoveItem = (id) => {
+    dispatch(removeFromCart(id)); // Rimuovi il prodotto dal carrello
+  };
 
   const toggleDrawer = (open) => {
     setOpen(open);
   };
 
+  const handleClearCart = () => {
+    dispatch(clearCart());
+  };
+
+  const handleCheckOut = async () => {
+    try {
+      console.log("Sending the following items to backend:", JSON.stringify(cart.items, null, 2));
+
+      // Assicurati di inviare un formato semplice, senza `price_data`
+      const itemsToSend = cart.items.map(item => ({
+        id: item.id,
+        name: item.name,
+        image: item.img,
+        price: parseFloat(item.price), // Assicurati che sia un numero valido
+        quantity: item.quantity
+      }));
+
+      console.log("Items sent to backend:", JSON.stringify(itemsToSend, null, 2));
+
+      const response = await axios.post('http://localhost:4242/create-checkout-session', {
+        items: itemsToSend, // Ora inviamo il formato corretto
+      });
+
+      if (!response.data || !response.data.url) {
+        throw new Error('Failed to create checkout session, URL not returned.');
+      }
+
+      window.location.href = response.data.url;
+    } catch (error) {
+      console.error("Error during checkout", error);
+      alert("Errore durante il checkout: " + error.message);
+    }
+  };
+
+
   return (
     <>
-
       <Button
         sx={{
           position: "fixed",
           bottom: 20,
           right: 20,
-          backgroundColor: "rgba(8, 8, 8, 0.4)",
-          color: "white",
-          borderRadius: "999px",
-          width: "50px",
-          height: "50px",
+          backgroundColor: "white",
+          color: "black",
+          width: '50px',
+          height: '60px',
+          borderRadius: '50%',
           boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.1)",
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
           ":hover": {
             backgroundColor: "#2980b9",
           },
@@ -38,44 +77,46 @@ const Cart = () => {
       >
         <ShoppingCartIcon />
       </Button>
-      <Drawer anchor="right" open={open} onClose={() => toggleDrawer(false)}>
-        <Box sx={{ width: 345, height: '100vh', padding: "20px", backgroundColor: "#34495e", color: "whitesmoke", display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-          <Typography variant="h5" sx={{ marginBottom: "20px" }}>Your Cart</Typography>
-          <Divider sx={{ marginBottom: "20px" }} />
-          <List>
-            {cartItems.map((item, index) => (
-              <ListItem key={index} sx={{ padding: "10px 0" }}>
-                <ListItemText
-                  primary={item.name}
-                  secondary={`Quantity: ${item.quantity} | $${item.price * item.quantity}`}
-                  sx={{ color: "whitesmoke" }}
-                />
-              </ListItem>
-            ))}
-          </List>
-          <Divider sx={{ marginBottom: "20px" }} />
-          <Typography variant="h6" sx={{ marginBottom: "10px" }}>
-            Total: ${totalPrice.toFixed(2)}
-          </Typography>
-          <Button
-            fullWidth
-            variant="contained"
-            sx={{
-              backgroundColor: "#2980b9",
-              ":hover": {
-                backgroundColor: "#1f6f91",
-              },
-              borderRadius: "14px",
-              padding: "10px",
-              boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.1)",
-            }}
-            onClick={() => navigate('/checkout')}
-
-          >
-            Checkout
-          </Button>
+      <Drawer anchor="right" open={open} onClose={() => toggleDrawer(false)} sx={{
+        '&[aria-hidden="true"]': {
+          pointerEvents: 'none',  // Disabilita l'interazione con gli elementi all'interno del drawer quando è nascosto
+        }
+      }} >
+        <Box sx={{ minWidth: '500px', padding: 5, display: 'flex', alignItems: 'start', justifyContent: 'start', flexDirection: 'column', height: '100vh', backgroundColor: '#020203f3', color: 'whitesmoke' }}>
+          <Typography variant="h4" sx={{ marginBottom: 2, }}>Shopping Cart</Typography>
+          {cart.totalQuantity === 0 ? (
+            <Typography fontSize='30px'>Empty Cart</Typography>
+          ) : (
+            <List>
+              {cart.items.map((item) => (
+                <ListItem key={item.id} sx={{ width: '100%' }}>
+                  <Box sx={{ display: 'flex', width: '100%', justifySelf: 'start' }}>
+                    <div className=" cart-item  ">
+                      <Typography variant="body1" sx={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name} </Typography>
+                      <Typography> x {item.quantity}</Typography>
+                      <Typography >${item.price * item.quantity}</Typography>
+                      <Button
+                        onClick={() => handleRemoveItem(item.id)}
+                        color="error"
+                        variant="outlined"
+                      >
+                        X
+                      </Button>
+                    </div>
+                  </Box>
+                </ListItem>
+              ))}
+            </List>
+          )}
+          <Box sx={{ marginTop: 2, display: 'flex', flexDirection: 'column', justifyContent: 'start', alignItems: 'center', gap: 3 }}>
+            <Typography variant="h6">Total: ${cart.totalPrice.toFixed(2)}</Typography>
+            <div className="flex gap-2">
+              <Button onClick={handleCheckOut} variant="contained" color="success">Checkout</Button>
+              <Button onClick={handleClearCart} variant="contained" color="error">Clear</Button>
+            </div>
+          </Box>
         </Box>
-      </Drawer>
+      </Drawer >
     </>
   );
 };

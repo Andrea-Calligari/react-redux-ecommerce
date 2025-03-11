@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Card, CardContent, CardMedia, Typography, Button, Box, Container, Dialog, DialogActions, DialogContent, DialogTitle, Grid2 } from '@mui/material';
+import { Card, CardContent, CardMedia, Typography, Button, Box, Container, Dialog, DialogActions, DialogContent, DialogTitle, Grid2, Pagination } from '@mui/material';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../../../features/products/components/cart/cartSlice';
 import Cart from '../cart/Cart';
@@ -10,8 +10,18 @@ const ProductList = () => {
   const products = useSelector((state) => state.products.products);
   const dispatch = useDispatch();
 
+
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [openModal, setOpenModal] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 6;
+
+
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
+
+  const totalPages = Math.ceil(products.length / productsPerPage);
 
   const handleProductDetails = (product) => {
     setSelectedProduct(product);
@@ -23,16 +33,25 @@ const ProductList = () => {
     setSelectedProduct(null);
   };
 
-  const handleAddToCart = ()=>{
-    dispatch(addToCart());
-  }
+  const handleAddToCart = (product) => {
+    dispatch(addToCart(product));
+    setOpenModal(false);
+  };
+
+
+  const handlePageChange = (e, value) => {
+    e.preventDefault();
+    setCurrentPage(value);
+  };
 
   return (
-    <Container sx={{ width: '100%', padding: 4, overflowX: 'hidden'  }}>
+
+
+    <Container sx={{ maxWidth: '100%', maxHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', textAlign: 'start', paddingTop: '24px' }}>
       <Grid2 container spacing={2} justifyContent="center" alignItems='center'>
-        {products.map((product) => (
-          <Grid2 item xs={12} sm={6} md={4} lg={3} key={product.id}>
-            <Card sx={{ width: '100%', maxWidth: '300px',maxHeight:'80vh', borderRadius: '14px', cursor: 'pointer', boxShadow: 3 }}>
+        {currentProducts.map((product) => (
+          <Grid2  xs={12} sm={6} md={4} lg={3} key={product.id}>
+            <Card sx={{ width: '300px', borderRadius: '14px', cursor: 'pointer', boxShadow: '2px 4px 12px 2px green', }}>
               <CardMedia
                 component="img"
                 height="200"
@@ -40,10 +59,10 @@ const ProductList = () => {
                 alt={product.name}
               />
               <CardContent>
-                <Typography  variant="body1" fontWeight="bold">
+                <Typography variant="body1" fontWeight="bold">
                   {product.name}
                 </Typography>
-                <Typography color='warning'  variant="body1" fontWeight="bold">
+                <Typography color='warning' variant="body1" fontWeight="bold">
                   {product.model}
                 </Typography>
               </CardContent>
@@ -59,6 +78,29 @@ const ProductList = () => {
           </Grid2>
         ))}
       </Grid2>
+
+      {/* Paginate Component */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: 4, }}>
+        <Pagination
+          sx={{
+            '& .MuiPaginationItem-root': {
+              color: 'black',
+              backgroundColor: 'whitesmoke',
+              '&:hover': {
+                backgroundColor: '#66bbe0',
+              },
+              '&.Mui-selected': {
+                backgroundColor: '#2980b9',
+                color: 'white',
+              },
+            },
+          }}
+          count={totalPages}
+          page={currentPage}
+          onChange={handlePageChange}
+
+        />
+      </Box>
 
       {/* Modal per visualizzare i dettagli del prodotto */}
       {selectedProduct && (
@@ -81,8 +123,8 @@ const ProductList = () => {
             <Button startIcon={<CloseIcon />} variant="contained" onClick={handleCloseModal} color="error">
               Close
             </Button>
-             <Button  variant="contained" onClick={handleAddToCart} color="success">
-              Add to cart 
+            <Button variant="contained" onClick={() => handleAddToCart(selectedProduct)} color="success">
+              Add to cart
             </Button>
           </DialogActions>
         </Dialog>
